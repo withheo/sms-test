@@ -1,0 +1,29 @@
+<!doctype html>
+<html lang="ko"><head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<meta name="robots" content="noindex">
+<title>연락하기</title>
+<style>
+  body{font-family:sans-serif;text-align:center;padding:40px 16px}
+  a.btn{display:block;max-width:320px;margin:14px auto;padding:16px;border-radius:12px;
+        background:#2481cc;color:#fff;text-decoration:none;font-size:18px}
+  a.btn.tel{background:#2e7d32}
+  #n{font-size:22px;margin-bottom:24px}
+</style>
+</head><body>
+<p id="n"></p>
+<a id="sms" class="btn">문자 보내기</a>
+<a id="tel" class="btn tel">전화 걸기</a>
+<script>
+  // 번호는 주소의 # 뒤에서만 읽음 (서버로 전송되지 않음). 예: .../#010-7785-8661
+  const num = decodeURIComponent(location.hash.slice(1)).replace(/[^0-9+]/g, '');
+  document.getElementById('n').textContent = num || '번호 없음';
+  if (num) {
+    document.getElementById('sms').href = 'sms:' + num;
+    document.getElementById('tel').href = 'tel:' + num;
+  } else {
+    document.getElementById('sms').remove();
+    document.getElementById('tel').remove();
+  }
+</script></body></html>
