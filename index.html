@@ -10,6 +10,7 @@
         background:#2481cc;color:#fff;text-decoration:none;font-size:18px}
   a.btn.tel{background:#2e7d32}
   a.btn.open{background:#f57c00}
+  a.btn.copy{background:#6a1b9a;font-size:15px}
   #n{font-size:22px;margin-bottom:8px}
   #m{color:#555;font-size:14px;margin:0 auto 24px;max-width:320px;white-space:pre-wrap}
   [hidden]{display:none!important}
@@ -18,6 +19,7 @@
 <p id="n"></p>
 <p id="m"></p>
 <a id="sms" class="btn" hidden>문자 보내기</a>
+<a id="copy" class="btn copy" hidden href="#" onclick="copyMsg(event)">📋 문구 복사 (본문이 안 채워질 때)</a>
 <a id="tel" class="btn tel" hidden>전화 걸기</a>
 <a id="open" class="btn open" hidden>🌐 Chrome으로 글 열기</a>
 <p id="none" hidden>정보가 없습니다.</p>
@@ -32,12 +34,27 @@
   const msg = params.get('m') || '';
   const url = params.get('u') || '';
   const $ = (id) => document.getElementById(id);
+  function copyMsg(e) {
+    e.preventDefault();
+    const done = () => { $('copy').textContent = '✅ 복사됨 - 문자 입력창에 붙여넣으세요'; };
+    if (navigator.clipboard && navigator.clipboard.writeText) {
+      navigator.clipboard.writeText(msg).then(done, () => fallbackCopy(done));
+    } else fallbackCopy(done);
+  }
+  function fallbackCopy(done) {
+    const t = document.createElement('textarea');
+    t.value = msg; document.body.appendChild(t); t.select();
+    try { document.execCommand('copy'); done(); } catch (_) {}
+    t.remove();
+  }
 
   if (num) {
     $('n').textContent = num;
     $('m').textContent = msg;
-    // iOS/안드로이드 공통: sms:번호?&body=내용
-    $('sms').href = 'sms:' + num + (msg ? '?&body=' + encodeURIComponent(msg) : '');
+    // 기기별 본문 형식: 안드로이드 sms:번호?body=내용 / iOS sms:번호&body=내용
+    const isIOS = /iphone|ipad|ipod/i.test(navigator.userAgent);
+    $('sms').href = 'sms:' + num + (msg ? (isIOS ? '&' : '?') + 'body=' + encodeURIComponent(msg) : '');
+    if (msg) $('copy').hidden = false;
     $('tel').href = 'tel:' + num;
     $('sms').hidden = false;
     $('tel').hidden = false;
