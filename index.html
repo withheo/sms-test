@@ -19,14 +19,10 @@
 <p id="n"></p>
 <p id="m"></p>
 <a id="sms" class="btn" hidden>문자 보내기</a>
-<a id="sms2" class="btn copy" hidden>문자 보내기 (다른 방식)</a>
-<a id="sms3" class="btn copy" hidden>문자 보내기 (방식 3)</a>
-<a id="copy" class="btn copy" hidden href="#" onclick="copyMsg(event)">📋 문구 복사 (본문이 안 채워질 때)</a>
+<a id="sms2" class="btn copy" hidden>문자 보내기 (안드로이드 다른 방식)</a><a id="copy" class="btn copy" hidden href="#" onclick="copyMsg(event)">📋 문구 복사 (본문이 안 채워질 때)</a>
 <a id="tel" class="btn tel" hidden>전화 걸기</a>
 <a id="open" class="btn open" hidden>🌐 Chrome으로 글 열기</a>
-<p id="none" hidden>정보가 없습니다.</p>
-<p id="dbg" style="color:#999;font-size:12px;margin-top:32px"></p>
-<script>
+<p id="none" hidden>정보가 없습니다.</p><script>
   // 주소 형식 (# 뒤는 서버로 전송되지 않음)
   //  문자/전화: .../#n=01077858661&m=문자내용
   //  글 열기:   .../#u=https%3A%2F%2Fexample.com%2Fpost  (Chrome 으로 열기)
@@ -62,18 +58,8 @@
       $('sms').href = 'intent:' + num + '#Intent;scheme=smsto;action=android.intent.action.SENDTO;S.sms_body=' + encodeURIComponent(msg) + ';end';
       $('sms2').href = std; // 보조: 일반 sms: 링크
       $('sms2').hidden = false;
-    } else if (isIOS && msg) {
-      // iOS 는 버전마다 되는 형식이 달라 3가지를 모두 제공 (되는 것을 알려주면 하나로 정리)
-      const b = encodeURIComponent(msg);
-      $('sms').href = 'sms:' + num + '&body=' + b;                    // 방식 1
-      $('sms2').href = 'sms:/open?addresses=' + num + '&body=' + b;   // 방식 2
-      $('sms3').href = 'sms:' + num + '?&body=' + b;                  // 방식 3
-      $('sms').textContent = '문자 보내기 (방식 1)';
-      $('sms2').textContent = '문자 보내기 (방식 2)';
-      $('sms3').textContent = '문자 보내기 (방식 3)';
-      $('sms2').hidden = false;
-      $('sms3').hidden = false;
     } else {
+      // iOS(아이폰에서 확인됨): sms:번호&body=내용
       $('sms').href = std;
     }
     if (msg) $('copy').hidden = false;
@@ -94,7 +80,4 @@
     $('open').hidden = false;
     if (!num) $('n').textContent = url;
   }
-  if (!num && $('open').hidden) $('none').hidden = false;
-  // 진단용: 어떤 버전이 로드됐고 기기/문구를 어떻게 인식했는지
-  $('dbg').textContent = 'v5 · ' + (/android/i.test(navigator.userAgent) ? 'Android' : /iphone|ipad|ipod/i.test(navigator.userAgent) ? 'iOS' : '기타') + ' · 문구 ' + (msg ? msg.length + '자' : '없음');
-</script></body></html>
+  if (!num && $('open').hidden) $('none').hidden = false;</script></body></html>
