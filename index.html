@@ -9,21 +9,51 @@
   a.btn{display:block;max-width:320px;margin:14px auto;padding:16px;border-radius:12px;
         background:#2481cc;color:#fff;text-decoration:none;font-size:18px}
   a.btn.tel{background:#2e7d32}
-  #n{font-size:22px;margin-bottom:24px}
+  a.btn.open{background:#f57c00}
+  #n{font-size:22px;margin-bottom:8px}
+  #m{color:#555;font-size:14px;margin:0 auto 24px;max-width:320px;white-space:pre-wrap}
+  [hidden]{display:none!important}
 </style>
 </head><body>
 <p id="n"></p>
-<a id="sms" class="btn">문자 보내기</a>
-<a id="tel" class="btn tel">전화 걸기</a>
+<p id="m"></p>
+<a id="sms" class="btn" hidden>문자 보내기</a>
+<a id="tel" class="btn tel" hidden>전화 걸기</a>
+<a id="open" class="btn open" hidden>🌐 Chrome으로 글 열기</a>
+<p id="none" hidden>정보가 없습니다.</p>
 <script>
-  // 번호는 주소의 # 뒤에서만 읽음 (서버로 전송되지 않음). 예: .../#010-7785-8661
-  const num = decodeURIComponent(location.hash.slice(1)).replace(/[^0-9+]/g, '');
-  document.getElementById('n').textContent = num || '번호 없음';
+  // 주소 형식 (# 뒤는 서버로 전송되지 않음)
+  //  문자/전화: .../#n=01077858661&m=문자내용
+  //  글 열기:   .../#u=https%3A%2F%2Fexample.com%2Fpost  (Chrome 으로 열기)
+  //  예전 형식 .../#01077858661 도 동작
+  const raw = location.hash.slice(1);
+  const params = new URLSearchParams(raw.includes('=') ? raw : 'n=' + raw);
+  const num = (params.get('n') || '').replace(/[^0-9+]/g, '');
+  const msg = params.get('m') || '';
+  const url = params.get('u') || '';
+  const $ = (id) => document.getElementById(id);
+
   if (num) {
-    document.getElementById('sms').href = 'sms:' + num;
-    document.getElementById('tel').href = 'tel:' + num;
-  } else {
-    document.getElementById('sms').remove();
-    document.getElementById('tel').remove();
+    $('n').textContent = num;
+    $('m').textContent = msg;
+    // iOS/안드로이드 공통: sms:번호?&body=내용
+    $('sms').href = 'sms:' + num + (msg ? '?&body=' + encodeURIComponent(msg) : '');
+    $('tel').href = 'tel:' + num;
+    $('sms').hidden = false;
+    $('tel').hidden = false;
   }
+  if (/^https?:\/\//i.test(url)) {
+    const m = url.match(/^(https?):\/\/(.+)$/i);
+    const ua = navigator.userAgent;
+    let href = url;
+    if (/android/i.test(ua)) {
+      href = `intent://${m[2]}#Intent;scheme=${m[1].toLowerCase()};package=com.android.chrome;S.browser_fallback_url=${encodeURIComponent(url)};end`;
+    } else if (/iphone|ipad|ipod/i.test(ua)) {
+      href = (m[1].toLowerCase() === 'https' ? 'googlechromes://' : 'googlechrome://') + m[2];
+    }
+    $('open').href = href;
+    $('open').hidden = false;
+    if (!num) $('n').textContent = url;
+  }
+  if (!num && $('open').hidden) $('none').hidden = false;
 </script></body></html>
